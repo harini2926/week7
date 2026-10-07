@@ -2,20 +2,39 @@ pipeline {
     agent any
 
     stages {
-        stage('Build') {
+
+        stage('Build Docker Image') {
             steps {
-                echo "Build Docker Image"
-                bat "docker build -t mypythonflaskapp ."
+                echo 'Build Docker Image'
+                bat 'docker build -t kubdemoapp:v1 .'
             }
         }
 
-        stage('Run') {
+        stage('Docker Login') {
             steps {
-                echo "Run application in Docker Container"
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-credentials',
+                    usernameVariable: 'DOCKER_USERNAME',
+                    passwordVariable: 'DOCKER_PASSWORD'
+                )]) {
+                    bat 'docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%'
+                }
+            }
+        }
 
-                bat "docker rm -f mycontainer || exit 0"
+        stage('Push Docker Image to Docker Hub') {
+            steps {
+                echo 'Push Docker Image to Docker Hub'
 
-                bat "docker run -d -p 5000:5000 --name mycontainer mypythonflaskapp"
+                bat 'docker tag kubdemoapp:v1 bhavani765/sample:kubeimage1'
+                bat 'docker push bhavani765/sample:kubeimage1'
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                bat 'kubectl apply -f deployment.yaml --validate=false'
+                bat 'kubectl apply -f service.yaml'
             }
         }
     }

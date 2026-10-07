@@ -5,7 +5,7 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                echo 'Build Docker Image'
+                echo 'Building Docker Image...'
                 bat 'docker build -t kubdemoapp:v1 .'
             }
         }
@@ -24,15 +24,17 @@ pipeline {
 
         stage('Push Docker Image to Docker Hub') {
             steps {
-                echo 'Push Docker Image to Docker Hub'
+                echo 'Tagging Docker Image...'
+                bat 'docker tag kubdemoapp:v1 harini2926/sample2:version1'
 
-                bat 'docker tag kubdemoapp:v1 bhavani765/sample:kubeimage1'
-                bat 'docker push bhavani765/sample:kubeimage1'
+                echo 'Pushing Docker Image...'
+                bat 'docker push harini2926/sample2:version1'
             }
         }
 
         stage('Deploy to Kubernetes') {
             steps {
+                echo 'Deploying to Kubernetes...'
                 bat 'kubectl apply -f deployment.yaml --validate=false'
                 bat 'kubectl apply -f service.yaml'
             }

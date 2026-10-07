@@ -3,6 +3,13 @@ pipeline {
 
     stages {
 
+        stage('Docker Logout') {
+            steps {
+                echo 'Clearing old Docker Hub credentials...'
+                bat 'docker logout || exit /b 0'
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 echo 'Building Docker Image...'
@@ -17,7 +24,7 @@ pipeline {
                     usernameVariable: 'DOCKER_USERNAME',
                     passwordVariable: 'DOCKER_PASSWORD'
                 )]) {
-                    bat 'docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%'
+                    bat 'echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin'
                 }
             }
         }
